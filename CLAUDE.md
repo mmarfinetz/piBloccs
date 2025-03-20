@@ -1,20 +1,26 @@
-# CLAUDE.md - Guidelines for this repository
+# Block Collision π Simulation - Developer Guide
 
-## Commands
-- Run simulation: `python simulation.py`
-- Run specific experiment: `python -c "from simulation import run_pi_experiment; sim, collisions = run_pi_experiment(mass_ratio=100)"`
-- Test multiple ratios: `python -c "from simulation import test_multiple_ratios; test_multiple_ratios()"`
-- Create animation: `python -c "from simulation import run_pi_experiment; sim, _ = run_pi_experiment(mass_ratio=100); sim.create_animation(filename='my_animation.gif')"`
+## 🏗️ Build & Run Commands
+- **Build React app**: `cd pi-collision-react && npm install && npm run build`
+- **Build everything**: `./build.sh`
+- **Run the app**: `python app.py` or `node index.js`
+- **Frontend dev server**: `cd pi-collision-react && npm start`
+- **Run a test**: `cd pi-collision-react && npm test`
+- **Lint React code**: `cd pi-collision-react && npx eslint src/`
 
-## Code Style Guidelines
-- **Imports**: Standard libraries first, then third-party packages, then local modules
-- **Formatting**: 4-space indentation, 80-character line limit
-- **Naming**: Classes use CamelCase, functions/variables use snake_case
-- **Documentation**: Docstrings for all classes and functions using NumPy style
-- **Error Handling**: Use appropriate checks for edge cases, especially in physics calculations
-- **Types**: Type hints are not currently used but may be introduced in the future
-- **Comments**: Include comments for complex physics/math operations
+## 🔧 Code Style Guidelines
+- **Python**: PEP 8 format, docstrings for classes & functions, type hints where helpful
+- **JavaScript**: ES6 syntax, functional components with hooks for React
+- **React**: Component files organized by feature in separate directories
+- **Imports**: Group imports by external libraries, then internal modules
+- **Naming**: camelCase for JS variables/functions, PascalCase for components/classes
+- **Error handling**: Try-catch in JS, try-except in Python with specific exceptions
 
-## Repository Structure
-- `simulation.py`: Main simulation code with `BlockCollisionSimulation` class
-- `*.gif`: Animation outputs from the simulation
+## 📚 Project Structure
+- Python simulation backend (`simulation.py`, `api/`)
+- React frontend (`pi-collision-react/`)
+- Express Node server (`index.js`)
+
+## 🧪 Testing
+- React tests use React Testing Library
+- Add tests for any new components or functionality
