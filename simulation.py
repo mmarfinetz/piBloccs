@@ -2,7 +2,12 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 from matplotlib.patches import Rectangle
-from IPython.display import HTML
+# Try to import IPython if available, otherwise provide alternative
+try:
+    from IPython.display import HTML
+    IPYTHON_AVAILABLE = True
+except ImportError:
+    IPYTHON_AVAILABLE = False
 import io
 import base64
 
@@ -219,37 +224,37 @@ class BlockCollisionSimulation:
             anim.save(filename, writer='pillow', fps=30)
             
         plt.close()
-        return HTML(anim.to_jshtml())
+        
+        # Return HTML only if IPython is available, otherwise return the animation object
+        if IPYTHON_AVAILABLE:
+            return HTML(anim.to_jshtml())
+        else:
+            return anim
 
     def create_animation_frames(self):
         """Create animation frames as base64 encoded images for web display"""
+        # Reduce frame count to minimize memory usage
+        reduced_frames = min(30, self.num_frames)
+        
         # Interpolate positions for smooth animation
-        interp_times = np.linspace(min(self.times), max(self.times), self.num_frames)
+        interp_times = np.linspace(min(self.times), max(self.times), reduced_frames)
         pos1 = np.interp(interp_times, self.times, self.positions_1)
         pos2 = np.interp(interp_times, self.times, self.positions_2)
         
         frames = []
         
-        # Setup the figure
-        fig, ax = plt.subplots(figsize=(10, 4))
+        # Setup the figure (smaller size to reduce memory usage)
+        fig, ax = plt.subplots(figsize=(6, 3), dpi=80)
+        plt.ioff()  # Turn interactive mode off to save memory
         
         # Set axis limits
         max_pos = max(max(self.positions_1), max(self.positions_2)) + 0.2
-        ax.set_xlim(-0.1, max_pos)
-        ax.set_ylim(0, 1)
-        ax.set_aspect('equal', adjustable='box')
-        
-        # Add floor line
-        ax.axhline(y=0.35, color='black', linestyle='-', alpha=0.3)
-        
-        # Display mass ratio
-        ax.text(0.05, 0.95, f'Mass Ratio: {self.m1/self.m2:.0f}:1', transform=ax.transAxes)
         
         # Generate frames
-        for i in range(0, self.num_frames, 2):  # Skip frames to reduce data size
+        for i in range(reduced_frames):
             ax.clear()
             
-            # Set axis limits again after clearing
+            # Set axis limits 
             ax.set_xlim(-0.1, max_pos)
             ax.set_ylim(0, 1)
             
@@ -274,12 +279,13 @@ class BlockCollisionSimulation:
             
             # Convert plot to base64 image
             buffer = io.BytesIO()
-            plt.savefig(buffer, format='png', dpi=80)
+            plt.savefig(buffer, format='png', dpi=80, bbox_inches='tight')
             buffer.seek(0)
             img_str = base64.b64encode(buffer.read()).decode('utf-8')
             frames.append(img_str)
+            buffer.close()
             
-        plt.close()
+        plt.close(fig)
         return frames
 
 def run_pi_experiment(mass_ratio=100, v1_initial=-1):

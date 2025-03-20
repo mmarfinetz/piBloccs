@@ -1,4 +1,4 @@
-run = "sh setup-and-run.sh"
+run = "bash start_replit.sh"
 entrypoint = "app.py"
 
 # Language configuration
@@ -22,5 +22,5 @@ channel = "stable-22_11"
 language = "python3"
 
 [deployment]
-run = ["sh", "-c", "sh setup-and-run.sh"]
+run = ["bash", "start_replit.sh"]
 deploymentTarget = "cloudrun" 
