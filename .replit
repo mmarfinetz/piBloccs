@@ -1,0 +1,26 @@
+run = "python app.py"
+entrypoint = "app.py"
+
+# Language configuration
+language = "python3"
+
+# Packaging and configuration
+hidden = [".config", "venv", ".gitignore", ".git"]
+
+# Environment variables
+[env]
+PYTHONUNBUFFERED = "1"
+
+# Enables the Always-On feature
+[backgroundActivity]
+enabled = true
+
+[nix]
+channel = "stable-22_11"
+
+[unitTest]
+language = "python3"
+
+[deployment]
+run = ["sh", "-c", "python app.py"]
+deploymentTarget = "cloudrun" 

@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Block Collision Simulation - Pi Approximation</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            padding-top: 20px;
+            padding-bottom: 40px;
+        }
+        .jumbotron {
+            padding: 2rem 1rem;
+            margin-bottom: 2rem;
+            background-color: #e9ecef;
+            border-radius: .3rem;
+        }
+        #animation-container {
+            margin: 20px auto;
+            text-align: center;
+        }
+        #simulation-image {
+            max-width: 100%;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        #controls {
+            margin: 15px 0;
+            text-align: center;
+        }
+        .result-card {
+            margin-top: 20px;
+        }
+        .loading {
+            text-align: center;
+            margin: 20px;
+            display: none;
+        }
+        .pi-container {
+            margin-top: 30px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="jumbotron">
+            <h1 class="display-4">Block Collision Simulation</h1>
+            <p class="lead">Approximating π through physics!</p>
+            <hr class="my-4">
+            <p>This simulation demonstrates how the number of collisions between two blocks approximates π when their mass ratio is a power of 100.</p>
+        </div>
+
+        <div class="row">
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-header">
+                        Simulation Parameters
+                    </div>
+                    <div class="card-body">
+                        <form id="simulation-form">
+                            <div class="mb-3">
+                                <label for="m1" class="form-label">Mass of Block 1</label>
+                                <input type="number" class="form-control" id="m1" name="m1" value="100" min="1">
+                            </div>
+                            <div class="mb-3">
+                                <label for="m2" class="form-label">Mass of Block 2</label>
+                                <input type="number" class="form-control" id="m2" name="m2" value="1" min="1">
+                            </div>
+                            <div class="mb-3">
+                                <label for="v1" class="form-label">Initial Velocity of Block 1</label>
+                                <input type="number" class="form-control" id="v1" name="v1" value="-1" step="0.1">
+                            </div>
+                            <div class="mb-3">
+                                <label for="v2" class="form-label">Initial Velocity of Block 2</label>
+                                <input type="number" class="form-control" id="v2" name="v2" value="0" step="0.1">
+                            </div>
+                            <button type="submit" class="btn btn-primary">Run Simulation</button>
+                        </form>
+                    </div>
+                </div>
+                
+                <div class="card mt-3">
+                    <div class="card-header">
+                        Quick Pi Experiment
+                    </div>
+                    <div class="card-body">
+                        <p>Run the classic pi experiment with different mass ratios:</p>
+                        <button id="run-pi-experiment" class="btn btn-success">Run Pi Experiment</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-8">
+                <div id="loading" class="loading">
+                    <div class="spinner-border" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p>Running simulation...</p>
+                </div>
+                
+                <div id="simulation-results" style="display: none;">
+                    <div class="card">
+                        <div class="card-header">
+                            Simulation Results
+                        </div>
+                        <div class="card-body">
+                            <div id="animation-container">
+                                <img id="simulation-image" src="" alt="Simulation animation">
+                                <div id="controls">
+                                    <button id="play-pause" class="btn btn-sm btn-primary">Pause</button>
+                                    <button id="restart" class="btn btn-sm btn-secondary">Restart</button>
+                                </div>
+                            </div>
+                            
+                            <div class="row mt-3">
+                                <div class="col">
+                                    <div class="card result-card">
+                                        <div class="card-body">
+                                            <h5 class="card-title">Collisions</h5>
+                                            <p id="collision-count" class="card-text display-6 text-center">-</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col">
+                                    <div class="card result-card">
+                                        <div class="card-body">
+                                            <h5 class="card-title">π Approximation</h5>
+                                            <p id="pi-approximation" class="card-text display-6 text-center">-</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="pi-experiment-results" class="pi-container" style="display: none;">
+                    <div class="card">
+                        <div class="card-header">
+                            Pi Experiment Results
+                        </div>
+                        <div class="card-body">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Mass Ratio</th>
+                                        <th>Collisions</th>
+                                        <th>Relation to π</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="pi-results-body">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const simulationForm = document.getElementById('simulation-form');
+            const piExperimentBtn = document.getElementById('run-pi-experiment');
+            const loading = document.getElementById('loading');
+            const simulationResults = document.getElementById('simulation-results');
+            const piExperimentResults = document.getElementById('pi-experiment-results');
+            const simulationImage = document.getElementById('simulation-image');
+            const playPauseBtn = document.getElementById('play-pause');
+            const restartBtn = document.getElementById('restart');
+            const collisionCount = document.getElementById('collision-count');
+            const piApproximation = document.getElementById('pi-approximation');
+            const piResultsBody = document.getElementById('pi-results-body');
+            
+            let animationFrames = [];
+            let currentFrame = 0;
+            let isPlaying = true;
+            let animationInterval;
+            
+            // Run simulation form submission
+            simulationForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                const formData = new FormData(simulationForm);
+                
+                loading.style.display = 'block';
+                simulationResults.style.display = 'none';
+                piExperimentResults.style.display = 'none';
+                
+                fetch('/simulate', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        // Display results
+                        animationFrames = data.animation_data;
+                        currentFrame = 0;
+                        
+                        // Start animation
+                        if (animationInterval) clearInterval(animationInterval);
+                        startAnimation();
+                        
+                        // Update other display elements
+                        collisionCount.textContent = data.collision_count;
+                        piApproximation.textContent = data.pi_approximation ? 
+                            data.pi_approximation.toFixed(6) : 'N/A';
+                        
+                        simulationResults.style.display = 'block';
+                    } else {
+                        alert('Error: ' + data.message);
+                    }
+                    loading.style.display = 'none';
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('An error occurred while running the simulation.');
+                    loading.style.display = 'none';
+                });
+            });
+            
+            // Run Pi experiment
+            piExperimentBtn.addEventListener('click', function() {
+                loading.style.display = 'block';
+                simulationResults.style.display = 'none';
+                piExperimentResults.style.display = 'none';
+                
+                fetch('/pi_experiment')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        // Clear previous results
+                        piResultsBody.innerHTML = '';
+                        
+                        // Add new results
+                        data.results.forEach(result => {
+                            const row = document.createElement('tr');
+                            row.innerHTML = `
+                                <td>${result.ratio}:1</td>
+                                <td>${result.collisions}</td>
+                                <td>${result.pi_relation}</td>
+                            `;
+                            piResultsBody.appendChild(row);
+                        });
+                        
+                        piExperimentResults.style.display = 'block';
+                    } else {
+                        alert('Error: ' + data.message);
+                    }
+                    loading.style.display = 'none';
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('An error occurred while running the pi experiment.');
+                    loading.style.display = 'none';
+                });
+            });
+            
+            // Animation control functions
+            function startAnimation() {
+                isPlaying = true;
+                playPauseBtn.textContent = 'Pause';
+                
+                // Display first frame
+                if (animationFrames.length > 0) {
+                    simulationImage.src = 'data:image/png;base64,' + animationFrames[0];
+                }
+                
+                // Start animation loop
+                animationInterval = setInterval(() => {
+                    if (isPlaying) {
+                        currentFrame = (currentFrame + 1) % animationFrames.length;
+                        simulationImage.src = 'data:image/png;base64,' + animationFrames[currentFrame];
+                    }
+                }, 100);
+            }
+            
+            playPauseBtn.addEventListener('click', function() {
+                isPlaying = !isPlaying;
+                this.textContent = isPlaying ? 'Pause' : 'Play';
+            });
+            
+            restartBtn.addEventListener('click', function() {
+                currentFrame = 0;
+                if (!isPlaying) {
+                    isPlaying = true;
+                    playPauseBtn.textContent = 'Pause';
+                }
+                simulationImage.src = 'data:image/png;base64,' + animationFrames[currentFrame];
+            });
+        });
+    </script>
+</body>
+</html> 
