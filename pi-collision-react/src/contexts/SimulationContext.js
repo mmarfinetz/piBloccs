@@ -97,6 +97,11 @@ function simulationReducer(state, action) {
   }
 }
 
+// Update API endpoints to use relative URLs that will work on Replit
+const API_BASE_URL = '/api';
+const SIMULATE_ENDPOINT = `${API_BASE_URL}/simulate`;
+const PI_EXPERIMENT_ENDPOINT = `${API_BASE_URL}/pi_experiment`;
+
 export function SimulationProvider({ children }) {
   const [state, dispatch] = useReducer(simulationReducer, initialState);
   
