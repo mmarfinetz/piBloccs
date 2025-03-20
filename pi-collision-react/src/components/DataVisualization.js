@@ -17,30 +17,82 @@ import { calculatePiConnection, calculateStateSpaceCoordinates, calculate3DState
 // Create a wrapper component for Plotly with improved responsiveness
 const PlotlyGraph = ({ data, layout, config, style }) => {
   const plotRef = useRef(null);
+  const [plotlyLoaded, setPlotlyLoaded] = useState(false);
   
+  // Check if Plotly is loaded
   useEffect(() => {
-    if (plotRef.current && window.Plotly) {
-      window.Plotly.newPlot(
-        plotRef.current, 
-        Array.isArray(data) ? data : [data], 
-        layout,
-        config
-      );
+    // Function to check if Plotly is available
+    const checkPlotly = () => {
+      if (window.Plotly) {
+        setPlotlyLoaded(true);
+        return true;
+      }
+      return false;
+    };
+    
+    // If Plotly is not immediately available, try to load it
+    if (!checkPlotly()) {
+      // Try to load Plotly if it's not available
+      const script = document.createElement('script');
+      script.src = 'https://cdn.plot.ly/plotly-2.29.0.min.js';
+      script.async = true;
+      script.onload = () => setPlotlyLoaded(true);
+      document.body.appendChild(script);
       
-      // Add responsive behavior
-      const resizeHandler = () => {
-        if (plotRef.current) {
-          window.Plotly.Plots.resize(plotRef.current);
+      // Check again every 100ms for 3 seconds
+      let attempts = 0;
+      const interval = setInterval(() => {
+        if (checkPlotly() || attempts >= 30) {
+          clearInterval(interval);
         }
-      };
-      
-      window.addEventListener('resize', resizeHandler);
+        attempts++;
+      }, 100);
       
       return () => {
-        window.removeEventListener('resize', resizeHandler);
+        clearInterval(interval);
+        document.body.removeChild(script);
       };
     }
-  }, [data, layout, config]);
+  }, []);
+  
+  // Create plot when Plotly is loaded and data changes
+  useEffect(() => {
+    if (plotRef.current && window.Plotly && plotlyLoaded) {
+      try {
+        window.Plotly.newPlot(
+          plotRef.current, 
+          Array.isArray(data) ? data : [data], 
+          layout,
+          config
+        );
+        
+        // Add responsive behavior
+        const resizeHandler = () => {
+          if (plotRef.current) {
+            window.Plotly.Plots.resize(plotRef.current);
+          }
+        };
+        
+        window.addEventListener('resize', resizeHandler);
+        
+        return () => {
+          window.removeEventListener('resize', resizeHandler);
+        };
+      } catch (err) {
+        console.error('Error rendering Plotly chart:', err);
+      }
+    }
+  }, [data, layout, config, plotlyLoaded]);
+  
+  if (!plotlyLoaded) {
+    return (
+      <div ref={plotRef} style={style} className="plotly-loading">
+        <Typography variant="body2" color="text.secondary">
+          Loading visualization...
+        </Typography>
+      </div>
+    );
+  }
   
   return <div ref={plotRef} style={style} />;
 };
