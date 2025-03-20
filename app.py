@@ -1,27 +1,25 @@
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, request, jsonify
 import io
 import base64
 import matplotlib
 matplotlib.use('Agg')  # Use the 'Agg' backend for generating images without a display
 import numpy as np
 from simulation import BlockCollisionSimulation
+from flask_cors import CORS
 
 app = Flask(__name__)
+CORS(app)  # Enable CORS for all routes
 
-@app.route('/')
-def index():
-    """Render the main page with the simulation form"""
-    return render_template('index.html')
-
-@app.route('/simulate', methods=['POST'])
+@app.route('/api/simulate', methods=['POST'])
 def simulate():
     """Run the simulation with the provided parameters and return results"""
     try:
-        # Get parameters from form
-        m1 = float(request.form.get('m1', 100))
-        m2 = float(request.form.get('m2', 1))
-        v1 = float(request.form.get('v1', -1))
-        v2 = float(request.form.get('v2', 0))
+        # Get parameters from JSON request
+        data = request.get_json()
+        m1 = float(data.get('m1', 100))
+        m2 = float(data.get('m2', 1))
+        v1 = float(data.get('v1', -1))
+        v2 = float(data.get('v2', 0))
         
         # Create and run simulation
         sim = BlockCollisionSimulation(
@@ -46,7 +44,7 @@ def simulate():
     except Exception as e:
         return jsonify({'status': 'error', 'message': str(e)})
 
-@app.route('/pi_experiment')
+@app.route('/api/pi_experiment', methods=['GET'])
 def pi_experiment():
     """Run the pi experiment with multiple mass ratios"""
     mass_ratios = [1, 100, 10000, 1000000]

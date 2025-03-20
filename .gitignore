@@ -37,4 +37,9 @@ ENV/
 
 # OS specific files
 .DS_Store
-Thumbs.db 
+Thumbs.db
+
+# Project specific - React build files
+# Node modules should be excluded
+pi-collision-react/node_modules/
+pi-collision-react/.env 
