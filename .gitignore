@@ -34,6 +34,7 @@ ENV/
 .vscode/
 *.swp
 *.swo
+.cursor/
 
 # OS specific files
 .DS_Store
@@ -43,3 +44,4 @@ Thumbs.db
 # Node modules should be excluded
 pi-collision-react/node_modules/
 pi-collision-react/.env 
+.vercel
