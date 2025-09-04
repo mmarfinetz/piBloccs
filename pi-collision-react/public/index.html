@@ -2,14 +2,15 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <link rel="icon" href="%PUBLIC_URL%/favicon.ico" />
+    <!-- Inline SVG favicon to avoid 404s for missing favicon.ico -->
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ctext y='14' font-size='14'%3E%CF%80%3C/text%3E%3C/svg%3E" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="theme-color" content="#000000" />
     <meta
       name="description"
       content="Pi Block Collision Simulator - visualizing how colliding blocks calculate pi"
     />
-    <link rel="apple-touch-icon" href="%PUBLIC_URL%/logo192.png" />
+    <!-- Removed apple-touch-icon reference (file not present) -->
     <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
     <!-- Load Plotly.js from CDN with fallback -->
     <script src="https://cdn.plot.ly/plotly-2.29.0.min.js" async defer crossorigin="anonymous"></script>
