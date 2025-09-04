@@ -4,15 +4,11 @@
     {
       "src": "pi-collision-react/package.json",
       "use": "@vercel/static-build",
-      "config": { "distDir": "pi-collision-react/build" }
+      "config": { "distDir": "build" }
     }
   ],
   "routes": [
-    { "src": "/static/(.*)", "dest": "pi-collision-react/build/static/$1" },
-    { "src": "/manifest.json", "dest": "pi-collision-react/build/manifest.json" },
-    { "src": "/asset-manifest.json", "dest": "pi-collision-react/build/asset-manifest.json" },
-    { "src": "/favicon.ico", "dest": "pi-collision-react/build/favicon.ico" },
-    { "src": "/logo192.png", "dest": "pi-collision-react/build/logo192.png" },
-    { "src": "/(.*)", "dest": "pi-collision-react/build/index.html" }
+    { "handle": "filesystem" },
+    { "src": "/(.*)", "dest": "/index.html" }
   ]
 }
