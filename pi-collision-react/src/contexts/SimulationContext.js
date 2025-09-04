@@ -1,5 +1,6 @@
-import React, { createContext, useContext, useReducer, useEffect } from 'react';
+import React, { createContext, useContext, useReducer, useEffect, useCallback } from 'react';
 import { calculateNextCollision, calculateCollisionVelocities } from '../utils/physics';
+import { simulationService } from '../services/simulationService';
 
 const SimulationContext = createContext();
 
@@ -38,6 +39,14 @@ const initialState = {
   positionHistory: [], // For plotting
   maxTime: 50, // Maximum simulation time
   preset: '100:1', // Current mass ratio preset
+  m1: 100,
+  m2: 1,
+  v1: -1,
+  v2: 0,
+  piApproximation: null,
+  savedResults: [],
+  loading: false,
+  error: null
 };
 
 // Reducer function to handle state updates
@@ -92,15 +101,27 @@ function simulationReducer(state, action) {
     case 'TOGGLE_DEBUG':
       return { ...state, showDebugInfo: !state.showDebugInfo };
       
+    case 'SET_MASSES':
+      return { ...state, m1: action.payload.m1, m2: action.payload.m2 };
+    case 'SET_VELOCITIES':
+      return { ...state, v1: action.payload.v1, v2: action.payload.v2 };
+    case 'SET_COLLISION_COUNT':
+      return { ...state, collisionCount: action.payload };
+    case 'SET_PI_APPROXIMATION':
+      return { ...state, piApproximation: action.payload };
+    case 'SET_SAVED_RESULTS':
+      return { ...state, savedResults: action.payload };
+    case 'SET_LOADING':
+      return { ...state, loading: action.payload };
+    case 'SET_ERROR':
+      return { ...state, error: action.payload };
     default:
       return state;
   }
 }
 
-// Update API endpoints to use relative URLs that will work on Replit
-const API_BASE_URL = '/api';
-const SIMULATE_ENDPOINT = `${API_BASE_URL}/simulate`;
-const PI_EXPERIMENT_ENDPOINT = `${API_BASE_URL}/pi_experiment`;
+// API endpoints would be used here if we were connecting to a backend
+// const API_BASE_URL = '/api';
 
 export function SimulationProvider({ children }) {
   const [state, dispatch] = useReducer(simulationReducer, initialState);
@@ -227,10 +248,52 @@ export function SimulationProvider({ children }) {
     return () => {
       cancelAnimationFrame(animationFrameId);
     };
-  }, [state.isRunning, state.blocks, state.timeStep, state.simulationSpeed, state.timeElapsed, state.maxTime, state.wallPosition, state.collisionCount, state.collisionEvents, state.positionHistory]);
+  }, [state.isRunning, state.blocks, state.timeStep, state.simulationSpeed, state.timeElapsed, state.maxTime, state.wallPosition, state.collisionCount, state.collisionEvents, state.positionHistory, state]);
   
+  const saveSimulationResult = useCallback(async (animationData) => {
+    try {
+      dispatch({ type: 'SET_LOADING', payload: true });
+      await simulationService.saveSimulationResult({
+        m1: state.m1,
+        m2: state.m2,
+        v1: state.v1,
+        v2: state.v2,
+        collision_count: state.collisionCount,
+        pi_approximation: state.piApproximation,
+        animation_data: animationData
+      });
+      
+      // Fetch updated results
+      const results = await simulationService.getSimulationResults();
+      dispatch({ type: 'SET_SAVED_RESULTS', payload: results });
+    } catch (error) {
+      dispatch({ type: 'SET_ERROR', payload: error.message });
+    } finally {
+      dispatch({ type: 'SET_LOADING', payload: false });
+    }
+  }, [state.m1, state.m2, state.v1, state.v2, state.collisionCount, state.piApproximation]);
+
+  const loadSimulationResults = useCallback(async () => {
+    try {
+      dispatch({ type: 'SET_LOADING', payload: true });
+      const results = await simulationService.getSimulationResults();
+      dispatch({ type: 'SET_SAVED_RESULTS', payload: results });
+    } catch (error) {
+      dispatch({ type: 'SET_ERROR', payload: error.message });
+    } finally {
+      dispatch({ type: 'SET_LOADING', payload: false });
+    }
+  }, []);
+
+  const value = {
+    state,
+    dispatch,
+    saveSimulationResult,
+    loadSimulationResults
+  };
+
   return (
-    <SimulationContext.Provider value={{ state, dispatch }}>
+    <SimulationContext.Provider value={value}>
       {children}
     </SimulationContext.Provider>
   );
@@ -238,7 +301,7 @@ export function SimulationProvider({ children }) {
 
 export function useSimulation() {
   const context = useContext(SimulationContext);
-  if (context === undefined) {
+  if (!context) {
     throw new Error('useSimulation must be used within a SimulationProvider');
   }
   return context;

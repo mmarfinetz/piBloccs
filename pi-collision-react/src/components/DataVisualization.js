@@ -115,7 +115,6 @@ const DataVisualization = () => {
   const [stateSpaceData, setStateSpaceData] = useState(null);
   const [stateSpace3DData, setStateSpace3DData] = useState(null);
   const [piConnection, setPiConnection] = useState(null);
-  const [showHigherDimensions, setShowHigherDimensions] = useState(true);
   const [viewMode, setViewMode] = useState('3d'); // '3d', '2d', or 'projection'
   const [colorBy, setColorBy] = useState('momentum'); // 'momentum', 'energy', or 'time'
   const [showTrajectory, setShowTrajectory] = useState(true);
@@ -481,7 +480,7 @@ const DataVisualization = () => {
                     },
                     hoverinfo: 'text',
                     hovertext: stateSpace3DData.points.map(p => 
-                      `p₁: ${p.x.toFixed(3)}<br>p₂: ${p.y.toFixed(3)}<br>E: ${p.z.toFixed(3)}<br>t: ${p.time.toFixed(2)}s`
+                      `p₁: ${p.x?.toFixed(3) || 'N/A'}<br>p₂: ${p.y?.toFixed(3) || 'N/A'}<br>E: ${p.z?.toFixed(3) || 'N/A'}<br>t: ${p.time?.toFixed(2) || 'N/A'}s`
                     )
                   }]}
                   layout={{
@@ -500,7 +499,7 @@ const DataVisualization = () => {
                   config={{ 
                     responsive: true,
                     displayModeBar: true,
-                    modeBarButtonsToAdd: ['toImage'],
+                    modeBarButtonsToAdd: ['toImage', 'downloadHtml'],
                     modeBarButtonsToRemove: ['lasso2d', 'select2d']
                   }}
                   style={{ width: '100%', height: '100%' }}
@@ -528,7 +527,7 @@ const DataVisualization = () => {
                     },
                     hoverinfo: 'text',
                     hovertext: stateSpace3DData.points.map(p => 
-                      `p₁: ${p.x.toFixed(3)}<br>p₂: ${p.y.toFixed(3)}<br>E: ${p.z.toFixed(3)}<br>t: ${p.time.toFixed(2)}s`
+                      `p₁: ${p.x?.toFixed(3) || 'N/A'}<br>p₂: ${p.y?.toFixed(3) || 'N/A'}<br>E: ${p.z?.toFixed(3) || 'N/A'}<br>t: ${p.time?.toFixed(2) || 'N/A'}s`
                     )
                   }]}
                   layout={{
@@ -563,7 +562,7 @@ const DataVisualization = () => {
                   config={{ 
                     responsive: true,
                     displayModeBar: true,
-                    modeBarButtonsToAdd: ['toImage'],
+                    modeBarButtonsToAdd: ['toImage', 'downloadHtml'],
                     modeBarButtonsToRemove: ['lasso2d', 'select2d'] 
                   }}
                   style={{ width: '100%', height: '100%' }}
@@ -591,7 +590,7 @@ const DataVisualization = () => {
                     },
                     hoverinfo: 'text',
                     hovertext: stateSpace3DData.points.map(p => 
-                      `p₁: ${p.x.toFixed(3)}<br>E: ${p.z.toFixed(3)}<br>t: ${p.time.toFixed(2)}s`
+                      `p₁: ${p.x?.toFixed(3) || 'N/A'}<br>E: ${p.z?.toFixed(3) || 'N/A'}<br>t: ${p.time?.toFixed(2) || 'N/A'}s`
                     )
                   }]}
                   layout={{
@@ -612,7 +611,7 @@ const DataVisualization = () => {
                   config={{ 
                     responsive: true,
                     displayModeBar: true,
-                    modeBarButtonsToAdd: ['toImage'],
+                    modeBarButtonsToAdd: ['toImage', 'downloadHtml'],
                     modeBarButtonsToRemove: ['lasso2d', 'select2d']
                   }}
                   style={{ width: '100%', height: '100%' }}
