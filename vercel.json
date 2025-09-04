@@ -1,7 +1,7 @@
 {
   "version": 2,
   "framework": "create-react-app",
-  "installCommand": "cd pi-collision-react && npm ci --no-audit --no-fund",
+  "installCommand": "cd pi-collision-react && npm install --no-audit --no-fund",
   "buildCommand": "cd pi-collision-react && CI=false npm run build",
   "outputDirectory": "pi-collision-react/build"
 }
