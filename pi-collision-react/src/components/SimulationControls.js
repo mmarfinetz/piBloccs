@@ -7,11 +7,9 @@ import {
   Typography,
   Stack,
   TextField,
-  FormControlLabel,
-  Switch,
   Tooltip,
   IconButton,
-  Divider
+  Grid
 } from '@mui/material';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import PauseIcon from '@mui/icons-material/Pause';
@@ -25,7 +23,7 @@ import { useSimulation } from '../contexts/SimulationContext';
 import ExportButton from './ExportButton';
 
 const SimulationControls = ({ canvasRef }) => {
-  const { state, dispatch } = useSimulation();
+  const { state, dispatch, saveSimulationResult } = useSimulation();
   const [customRatio, setCustomRatio] = useState('');
   
   // Preset mass ratios
@@ -59,9 +57,121 @@ const SimulationControls = ({ canvasRef }) => {
       payload: newValue
     });
   };
-  
+
+  const handleStart = () => {
+    dispatch({ type: 'SET_RUNNING', payload: true });
+  };
+
+  const handleStop = () => {
+    dispatch({ type: 'SET_RUNNING', payload: false });
+  };
+
+  const handleReset = () => {
+    dispatch({ type: 'SET_RUNNING', payload: false });
+    dispatch({ type: 'SET_COLLISION_COUNT', payload: 0 });
+    // Reset other state as needed
+  };
+
+  const handleSave = async () => {
+    if (canvasRef.current) {
+      const animationData = canvasRef.current.toDataURL();
+      await saveSimulationResult(animationData);
+    }
+  };
+
+  const handleMassChange = (event, block) => {
+    const value = parseFloat(event.target.value);
+    if (!isNaN(value) && value > 0) {
+      dispatch({
+        type: 'SET_MASSES',
+        payload: block === 1 ? { m1: value, m2: state.m2 } : { m1: state.m1, m2: value }
+      });
+    }
+  };
+
+  const handleVelocityChange = (event, block) => {
+    const value = parseFloat(event.target.value);
+    if (!isNaN(value)) {
+      dispatch({
+        type: 'SET_VELOCITIES',
+        payload: block === 1 ? { v1: value, v2: state.v2 } : { v1: state.v1, v2: value }
+      });
+    }
+  };
+
   return (
     <Box sx={{ mt: 3, px: 2 }}>
+      <Grid container spacing={2} alignItems="center">
+        <Grid item xs={12} sm={6}>
+          <Typography variant="subtitle1">Block 1</Typography>
+          <TextField
+            label="Mass"
+            type="number"
+            value={state.m1}
+            onChange={(e) => handleMassChange(e, 1)}
+            sx={{ mr: 1 }}
+          />
+          <TextField
+            label="Initial Velocity"
+            type="number"
+            value={state.v1}
+            onChange={(e) => handleVelocityChange(e, 1)}
+          />
+        </Grid>
+        <Grid item xs={12} sm={6}>
+          <Typography variant="subtitle1">Block 2</Typography>
+          <TextField
+            label="Mass"
+            type="number"
+            value={state.m2}
+            onChange={(e) => handleMassChange(e, 2)}
+            sx={{ mr: 1 }}
+          />
+          <TextField
+            label="Initial Velocity"
+            type="number"
+            value={state.v2}
+            onChange={(e) => handleVelocityChange(e, 2)}
+          />
+        </Grid>
+      </Grid>
+
+      <Box sx={{ mt: 2 }}>
+        <Button
+          variant="contained"
+          color="primary"
+          onClick={handleStart}
+          disabled={state.isRunning}
+          sx={{ mr: 1 }}
+        >
+          Start
+        </Button>
+        <Button
+          variant="contained"
+          color="secondary"
+          onClick={handleStop}
+          disabled={!state.isRunning}
+          sx={{ mr: 1 }}
+        >
+          Stop
+        </Button>
+        <Button
+          variant="outlined"
+          onClick={handleReset}
+          sx={{ mr: 1 }}
+        >
+          Reset
+        </Button>
+        <Button
+          variant="outlined"
+          color="primary"
+          onClick={handleSave}
+          disabled={state.loading || state.collisionCount === 0}
+        >
+          Save Results
+        </Button>
+      </Box>
+      
       {/* Mass ratio selector */}
       <Typography variant="subtitle1" gutterBottom>
         Mass Ratio

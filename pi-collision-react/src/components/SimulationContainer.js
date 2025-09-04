@@ -5,6 +5,7 @@ import SimulationCanvas from './SimulationCanvas';
 import SimulationControls from './SimulationControls';
 import DataVisualization from './DataVisualization';
 import ExplanationSection from './ExplanationSection';
+import SimulationHistory from './SimulationHistory';
 import useCollisionSound from '../hooks/useCollisionSound';
 
 const SimulationContainer = () => {
@@ -18,6 +19,10 @@ const SimulationContainer = () => {
     <Box sx={{ width: '100%', textAlign: 'center', py: 2 }}>
       <Typography variant="h3" component="h1" gutterBottom>
         π Block Collision Simulator
+      </Typography>
+      
+      <Typography variant="subtitle1" component="h2" gutterBottom sx={{ fontStyle: 'italic' }}>
+        how physical systems can perform computations
       </Typography>
       
       <Typography variant="h6" component="h2" gutterBottom sx={{ color: 'text.secondary' }}>
@@ -35,6 +40,8 @@ const SimulationContainer = () => {
             </Box>
             <SimulationControls canvasRef={canvasRef} />
           </Paper>
+          
+          <SimulationHistory />
         </Grid>
         
         <Grid item xs={12} md={4}>

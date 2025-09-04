@@ -30,3 +30,17 @@ When a large block collides with a smaller block near a wall, with mass ratios t
 - Mass ratio 1000000:1 → 3141 collisions ≈ π × 1000
 
 This fascinating connection between physics and mathematics emerges from the conservation laws of momentum and energy, creating a circular trajectory in state space that's directly related to π.
+
+## Supabase Integration
+
+This application uses Supabase to store simulation results. To set up the Supabase integration:
+
+1. Copy the `.env.example` file to `.env.local`
+2. Replace the placeholder values with your actual Supabase credentials:
+   ```
+   REACT_APP_SUPABASE_URL=your_supabase_url_here
+   REACT_APP_SUPABASE_ANON_KEY=your_supabase_anon_key_here
+   ```
+3. Create the `simulation_results` table in your Supabase database using the SQL schema provided in the project
+
+Never commit your real Supabase credentials to the repository. The `.env.local` file is included in `.gitignore` to prevent accidental exposure of your secrets.

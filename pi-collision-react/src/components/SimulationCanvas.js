@@ -106,7 +106,7 @@ const SimulationCanvas = forwardRef((props, ref) => {
       // Collision info
       ctx.fillText(`Collisions: ${collisionEvents.length}`, rect.width - 200, 60);
     }
-  }, [blocks, wallPosition, collisionEvents, timeElapsed, isRunning, canvasRef]);
+  }, [blocks, wallPosition, collisionEvents, timeElapsed, isRunning, canvasRef, showDebugInfo]);
   
   return (
     <Box sx={{ width: '100%', height: 300, mt: 2 }}>
