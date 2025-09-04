@@ -22,7 +22,7 @@
     "vercel-build": "./vercel-build.sh"
   },
   "engines": {
-    "node": "18.x"
+    "node": "22.x"
   },
   "eslintConfig": {
     "extends": [
