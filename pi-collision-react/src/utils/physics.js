@@ -99,3 +99,31 @@ export function calculateStateSpaceCoordinates(m1, m2, v1, v2) {
     y: p2
   };
 }
+
+/**
+ * Generate 3D state space coordinates with additional calculated dimensions
+ * @param {number} m1 - Mass of block 1
+ * @param {number} m2 - Mass of block 2
+ * @param {number} v1 - Velocity of block 1
+ * @param {number} v2 - Velocity of block 2
+ * @param {number} time - Current simulation time
+ * @returns {Object} - x, y, z, and color coordinates for the 3D state space
+ */
+export function calculate3DStateSpace(m1, m2, v1, v2, time) {
+  // Calculate momentum components scaled by sqrt(mass)
+  const p1 = Math.sqrt(m1) * v1;
+  const p2 = Math.sqrt(m2) * v2;
+  
+  // Calculate total kinetic energy
+  const ke = 0.5 * m1 * v1 * v1 + 0.5 * m2 * v2 * v2;
+  
+  // Calculate angular momentum (for 2D case, this is perpendicular to the plane)
+  const angularMomentum = p1 * p2 * Math.sin(time / 10);
+  
+  return {
+    x: p1,
+    y: p2,
+    z: ke,
+    color: Math.abs(angularMomentum)
+  };
+}
