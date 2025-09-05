@@ -12,7 +12,14 @@ import {
   Legend
 } from 'chart.js';
 import { useSimulation } from '../contexts/SimulationContext';
-import { calculatePiConnection, calculateStateSpaceCoordinates, calculate3DStateSpace } from '../utils/physics';
+import { 
+  calculatePiConnection, 
+  calculateStateSpaceCoordinates, 
+  calculate3DStateSpace,
+  calculateGalperinAlpha,
+  expectedCollisionsGalperin,
+  formatPiFromCollisions
+} from '../utils/physics';
 
 // Create a wrapper component for Plotly with improved responsiveness
 const PlotlyGraph = ({ data, layout, config, style }) => {
@@ -118,6 +125,8 @@ const DataVisualization = () => {
   const [viewMode, setViewMode] = useState('3d'); // '3d', '2d', or 'projection'
   const [colorBy, setColorBy] = useState('momentum'); // 'momentum', 'energy', or 'time'
   const [showTrajectory, setShowTrajectory] = useState(true);
+  const [energyChartData, setEnergyChartData] = useState(null);
+  const [momentumChartData, setMomentumChartData] = useState(null);
   
   // Handle tab change
   const handleTabChange = (event, newValue) => {
@@ -254,6 +263,48 @@ const DataVisualization = () => {
       });
     }
     
+    // Build conservation charts (energy and momentum over time)
+    const m1 = state.blocks[0].mass;
+    const m2 = state.blocks[1].mass;
+    const times = state.positionHistory.map(p => p.time.toFixed(3));
+    const velocities = state.positionHistory.map((p, i) => {
+      if (i === 0) {
+        return {
+          v1: state.blocks[0].velocity,
+          v2: state.blocks[1].velocity
+        };
+      } else {
+        const dt = state.positionHistory[i].time - state.positionHistory[i-1].time || 1e-6;
+        return {
+          v1: (state.positionHistory[i].block1 - state.positionHistory[i-1].block1) / dt,
+          v2: (state.positionHistory[i].block2 - state.positionHistory[i-1].block2) / dt
+        };
+      }
+    });
+    const ke1 = velocities.map(v => 0.5 * m1 * v.v1 * v.v1);
+    const ke2 = velocities.map(v => 0.5 * m2 * v.v2 * v.v2);
+    const keTot = ke1.map((e, i) => e + ke2[i]);
+    const p1 = velocities.map(v => m1 * v.v1);
+    const p2 = velocities.map(v => m2 * v.v2);
+    const pTot = p1.map((pv, i) => pv + p2[i]);
+
+    setEnergyChartData({
+      labels: times,
+      datasets: [
+        { label: 'KE₁', data: ke1, borderColor: state.blocks[0].color, backgroundColor: state.blocks[0].color + '44', tension: 0.1 },
+        { label: 'KE₂', data: ke2, borderColor: state.blocks[1].color, backgroundColor: state.blocks[1].color + '44', tension: 0.1 },
+        { label: 'Total KE', data: keTot, borderColor: '#2e7d32', backgroundColor: '#2e7d3244', tension: 0.05 }
+      ]
+    });
+    setMomentumChartData({
+      labels: times,
+      datasets: [
+        { label: 'p₁', data: p1, borderColor: state.blocks[0].color, backgroundColor: state.blocks[0].color + '44', tension: 0.1 },
+        { label: 'p₂', data: p2, borderColor: state.blocks[1].color, backgroundColor: state.blocks[1].color + '44', tension: 0.1 },
+        { label: 'Total p', data: pTot, borderColor: '#6d4c41', backgroundColor: '#6d4c4144', tension: 0.05 }
+      ]
+    });
+    
     // Calculate pi connection
     setPiConnection(calculatePiConnection(
       state.collisionCount, 
@@ -294,11 +345,13 @@ const DataVisualization = () => {
       <Tabs value={tabValue} onChange={handleTabChange} centered variant="fullWidth">
         <Tab label="Positions" />
         <Tab label="State Space" />
+        <Tab label="Conservation" />
+        <Tab label="Geometry" />
         <Tab label="3D Visualization" />
         <Tab label="π Connection" />
       </Tabs>
       
-      {tabValue === 2 && (
+      {tabValue === 4 && (
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, mt: 1 }}>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <ButtonGroup size="small" variant="outlined">
@@ -452,6 +505,120 @@ const DataVisualization = () => {
         )}
         
         {tabValue === 2 && (
+          energyChartData && momentumChartData ? (
+            <Box sx={{ width: '100%', height: '100%', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2 }}>
+              <Box sx={{ height: '100%' }}>
+                <Typography variant="subtitle1" sx={{ mb: 1 }}>Kinetic Energy</Typography>
+                <Line 
+                  data={energyChartData}
+                  options={{
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { position: 'top' } },
+                    scales: {
+                      x: { title: { display: true, text: 'Time (s)' }, ticks: { maxTicksLimit: 6 } },
+                      y: { title: { display: true, text: 'Energy' } }
+                    }
+                  }}
+                />
+              </Box>
+              <Box sx={{ height: '100%' }}>
+                <Typography variant="subtitle1" sx={{ mb: 1 }}>Momentum</Typography>
+                <Line 
+                  data={momentumChartData}
+                  options={{
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { position: 'top' } },
+                    scales: {
+                      x: { title: { display: true, text: 'Time (s)' }, ticks: { maxTicksLimit: 6 } },
+                      y: { title: { display: true, text: 'Momentum' } }
+                    }
+                  }}
+                />
+              </Box>
+            </Box>
+          ) : (
+            <Typography variant="body1" color="text.secondary">
+              Run the simulation to see conservation charts
+            </Typography>
+          )
+        )}
+
+        {tabValue === 3 && (
+          stateSpace3DData ? (
+            (() => {
+              const m1 = state.blocks[0].mass;
+              const m2 = state.blocks[1].mass;
+              const alpha = calculateGalperinAlpha(m1, m2);
+              const radii = stateSpace3DData.x.map((x, i) => Math.hypot(x, stateSpace3DData.y[i]));
+              const radius = Math.max(...radii, 1);
+              const maxR = radius * 1.05;
+              const kLimit = Math.min(1000, Math.floor(Math.PI / (alpha || 1)) + 1);
+              const shapes = [];
+              for (let k = 0; k <= kLimit; k++) {
+                const theta = k * alpha;
+                if (!isFinite(theta) || theta > Math.PI + 1e-9) break;
+                const x1 = maxR * Math.cos(theta);
+                const y1 = maxR * Math.sin(theta);
+                shapes.push({ type: 'line', x0: 0, y0: 0, x1, y1, line: { color: '#bbb', width: 1 } });
+                shapes.push({ type: 'line', x0: 0, y0: 0, x1, y1: -y1, line: { color: '#eee', width: 1 } });
+              }
+              const collisionPoints = (state.collisionEvents || []).map(ev => {
+                let idx = 0; let best = Infinity;
+                state.positionHistory.forEach((p, i) => {
+                  const d = Math.abs(p.time - ev.time);
+                  if (d < best) { best = d; idx = i; }
+                });
+                return { x: stateSpace3DData.x[idx], y: stateSpace3DData.y[idx], type: ev.type };
+              }).filter(pt => pt.x != null && pt.y != null);
+
+              return (
+                <PlotlyGraph
+                  data={[
+                    {
+                      x: stateSpace3DData.x,
+                      y: stateSpace3DData.y,
+                      type: 'scatter',
+                      mode: 'lines',
+                      line: { color: '#4caf50', width: 2 },
+                      hoverinfo: 'skip',
+                      name: 'Trajectory'
+                    },
+                    {
+                      x: collisionPoints.map(p => p.x),
+                      y: collisionPoints.map(p => p.y),
+                      type: 'scatter',
+                      mode: 'markers',
+                      marker: { color: '#ff9800', size: 8 },
+                      name: 'Collisions',
+                      hovertext: collisionPoints.map(p => p.type),
+                      hoverinfo: 'text'
+                    }
+                  ]}
+                  layout={{
+                    title: `Geometry: Rays at multiples of α (α = ${alpha ? alpha.toFixed(5) : 'N/A'})`,
+                    xaxis: { title: 'p₁ (√m₁ v₁)', scaleanchor: 'y', scaleratio: 1, gridcolor: '#eee', zerolinecolor: '#888' },
+                    yaxis: { title: 'p₂ (√m₂ v₂)', gridcolor: '#eee', zerolinecolor: '#888' },
+                    shapes: [
+                      { type: 'circle', xref: 'x', yref: 'y', x0: -maxR, y0: -maxR, x1: maxR, y1: maxR, line: { color: '#aaa' }, opacity: 0.15 },
+                      ...shapes
+                    ],
+                    showlegend: true,
+                  }}
+                  config={{ responsive: true, displayModeBar: true, modeBarButtonsToRemove: ['lasso2d', 'select2d'] }}
+                  style={{ width: '100%', height: '100%' }}
+                />
+              );
+            })()
+          ) : (
+            <Typography variant="body1" color="text.secondary">
+              Run the simulation to see geometric angle structure
+            </Typography>
+          )
+        )}
+        
+        {tabValue === 4 && (
           stateSpace3DData ? (
             <Box sx={{ height: '100%', width: '100%' }}>
               {viewMode === '3d' ? (
@@ -625,7 +792,7 @@ const DataVisualization = () => {
           )
         )}
         
-        {tabValue === 3 && (
+        {tabValue === 5 && (
           <Box sx={{ textAlign: 'center', width: '100%' }}>
             {piConnection ? (
               <>
@@ -642,7 +809,37 @@ const DataVisualization = () => {
                     π ≈ {piConnection.piDigits.toFixed(6)}
                   </Typography>
                 )}
-                
+
+                {(() => {
+                  const m1 = state.blocks[0].mass; const m2 = state.blocks[1].mass;
+                  const alpha = calculateGalperinAlpha(m1, m2);
+                  const expected = expectedCollisionsGalperin(m1, m2);
+                  const approxStr = formatPiFromCollisions(state.collisionCount, m1, m2);
+                  const n = Math.max(0, Math.round(0.5 * Math.log10(m1 / m2)));
+                  const norm = n > 0 ? state.collisionCount / Math.pow(10, n) : state.collisionCount;
+                  const err = n > 0 ? norm - Math.PI : null;
+                  return (
+                    <Box sx={{ mt: 1 }}>
+                      <Typography variant="body2" color="text.secondary">
+                        α = arctan(√(m₂/m₁)) ≈ {alpha ? alpha.toFixed(6) : 'N/A'}
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        Expected collisions (⌊π/α⌋): {expected ?? 'N/A'}
+                      </Typography>
+                      {n > 0 && (
+                        <Typography variant="body2" sx={{ mt: 1 }}>
+                          Digits from collisions (100^n:1 with n={n}): {approxStr}
+                        </Typography>
+                      )}
+                      {err != null && (
+                        <Typography variant="caption" color={Math.abs(err) < 1e-12 ? 'text.secondary' : 'error.main'}>
+                          Normalized difference vs π: {err.toExponential(2)}
+                        </Typography>
+                      )}
+                    </Box>
+                  );
+                })()}
+
                 <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
                   When the mass ratio is 100ⁿ:1, the collision count approximates π × 10ⁿ
                 </Typography>

@@ -101,6 +101,63 @@ export function calculateStateSpaceCoordinates(m1, m2, v1, v2) {
 }
 
 /**
+ * Compute the phase angle in the (sqrt(m1)v1, sqrt(m2)v2) plane
+ * @param {number} m1
+ * @param {number} m2
+ * @param {number} v1
+ * @param {number} v2
+ * @returns {number} angle in radians in [-π, π]
+ */
+export function calculatePhaseAngle(m1, m2, v1, v2) {
+  const p1 = Math.sqrt(m1) * v1;
+  const p2 = Math.sqrt(m2) * v2;
+  return Math.atan2(p2, p1);
+}
+
+/**
+ * Galperin wedge angle α for mass ratio m1:m2
+ * α = arctan(sqrt(m2/m1))
+ * @param {number} m1
+ * @param {number} m2
+ * @returns {number} alpha in radians
+ */
+export function calculateGalperinAlpha(m1, m2) {
+  if (!m1 || !m2) return NaN;
+  return Math.atan(Math.sqrt(m2 / m1));
+}
+
+/**
+ * Expected total collisions from Galperin's result: floor(π / α)
+ * @param {number} m1
+ * @param {number} m2
+ * @returns {number}
+ */
+export function expectedCollisionsGalperin(m1, m2) {
+  const alpha = calculateGalperinAlpha(m1, m2);
+  if (!isFinite(alpha) || alpha <= 0) return null;
+  return Math.floor(Math.PI / alpha);
+}
+
+/**
+ * Format π digits inferred from collisions for 100^n:1-style mass ratios
+ * Uses n = round(½ log10(m1/m2)) and returns a string like "3.1415".
+ * @param {number} collisions
+ * @param {number} m1
+ * @param {number} m2
+ * @returns {string}
+ */
+export function formatPiFromCollisions(collisions, m1, m2) {
+  if (!collisions || !m1 || !m2) return '';
+  const massRatio = m1 / m2;
+  // Estimate n digits from ratio ~ 100^n
+  const n = Math.max(0, Math.round(0.5 * Math.log10(massRatio)));
+  const factor = Math.pow(10, n);
+  const approx = collisions / factor;
+  // Ensure we always show exactly n decimals (pad with zeros)
+  return approx.toFixed(n);
+}
+
+/**
  * Generate 3D state space coordinates with additional calculated dimensions
  * @param {number} m1 - Mass of block 1
  * @param {number} m2 - Mass of block 2
