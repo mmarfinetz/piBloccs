@@ -160,8 +160,15 @@ export function SimulationProvider({ children }) {
             payload: {
               blocks: newBlocks,
               timeElapsed: state.timeElapsed + state.timeStep,
-              positionHistory: [...state.positionHistory, 
-                { time: state.timeElapsed, block1: newBlocks[0].position, block2: newBlocks[1].position }
+              positionHistory: [
+                ...state.positionHistory,
+                { 
+                  time: state.timeElapsed, 
+                  block1: newBlocks[0].position, 
+                  block2: newBlocks[1].position,
+                  v1: newBlocks[0].velocity,
+                  v2: newBlocks[1].velocity
+                }
               ]
             }
           });
@@ -204,8 +211,15 @@ export function SimulationProvider({ children }) {
               timeElapsed: state.timeElapsed + collisionTime,
               collisionCount: state.collisionCount + 1,
               collisionEvents: [...state.collisionEvents, { type: collisionType, time: state.timeElapsed + collisionTime }],
-              positionHistory: [...state.positionHistory, 
-                { time: state.timeElapsed + collisionTime, block1: newBlocks[0].position, block2: newBlocks[1].position }
+              positionHistory: [
+                ...state.positionHistory,
+                { 
+                  time: state.timeElapsed + collisionTime, 
+                  block1: newBlocks[0].position, 
+                  block2: newBlocks[1].position,
+                  v1: newBlocks[0].velocity,
+                  v2: newBlocks[1].velocity
+                }
               ]
             }
           });
@@ -226,8 +240,15 @@ export function SimulationProvider({ children }) {
             payload: {
               blocks: newBlocks,
               timeElapsed: state.timeElapsed + state.timeStep,
-              positionHistory: [...state.positionHistory, 
-                { time: state.timeElapsed + state.timeStep, block1: newBlocks[0].position, block2: newBlocks[1].position }
+              positionHistory: [
+                ...state.positionHistory,
+                { 
+                  time: state.timeElapsed + state.timeStep, 
+                  block1: newBlocks[0].position, 
+                  block2: newBlocks[1].position,
+                  v1: newBlocks[0].velocity,
+                  v2: newBlocks[1].velocity
+                }
               ]
             }
           });

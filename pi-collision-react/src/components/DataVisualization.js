@@ -165,19 +165,21 @@ const DataVisualization = () => {
     });
     
     // Update state space data (for circular trajectory visualization)
-    const stateSpacePoints = state.positionHistory.map(point => {
-      // Find corresponding velocities at this time
-      const index = state.positionHistory.findIndex(p => p.time === point.time);
-      const v1 = index > 0 ? 
-        (state.positionHistory[index].block1 - state.positionHistory[index-1].block1) / 
-        (state.positionHistory[index].time - state.positionHistory[index-1].time) :
-        state.blocks[0].velocity;
-      
-      const v2 = index > 0 ? 
-        (state.positionHistory[index].block2 - state.positionHistory[index-1].block2) / 
-        (state.positionHistory[index].time - state.positionHistory[index-1].time) :
-        state.blocks[1].velocity;
-      
+    const stateSpacePoints = state.positionHistory.map((point, idx) => {
+      // Prefer velocities recorded in positionHistory to avoid tiny-dt spikes
+      let v1 = point.v1;
+      let v2 = point.v2;
+      if (typeof v1 !== 'number' || typeof v2 !== 'number') {
+        if (idx > 0) {
+          const prev = state.positionHistory[idx - 1];
+          const dt = Math.max(1e-6, point.time - prev.time);
+          v1 = (point.block1 - prev.block1) / dt;
+          v2 = (point.block2 - prev.block2) / dt;
+        } else {
+          v1 = state.blocks[0].velocity;
+          v2 = state.blocks[1].velocity;
+        }
+      }
       return {
         ...calculateStateSpaceCoordinates(
           state.blocks[0].mass, 
@@ -226,18 +228,20 @@ const DataVisualization = () => {
     }
     
     // Create 3D state space data
-    const stateSpace3DPoints = stateSpacePoints.map(point => {
-      const index = state.positionHistory.findIndex(p => p.time === point.time);
-      const v1 = index > 0 ? 
-        (state.positionHistory[index].block1 - state.positionHistory[index-1].block1) / 
-        (state.positionHistory[index].time - state.positionHistory[index-1].time) :
-        state.blocks[0].velocity;
-      
-      const v2 = index > 0 ? 
-        (state.positionHistory[index].block2 - state.positionHistory[index-1].block2) / 
-        (state.positionHistory[index].time - state.positionHistory[index-1].time) :
-        state.blocks[1].velocity;
-      
+    const stateSpace3DPoints = state.positionHistory.map((point, idx) => {
+      let v1 = point.v1;
+      let v2 = point.v2;
+      if (typeof v1 !== 'number' || typeof v2 !== 'number') {
+        if (idx > 0) {
+          const prev = state.positionHistory[idx - 1];
+          const dt = Math.max(1e-6, point.time - prev.time);
+          v1 = (point.block1 - prev.block1) / dt;
+          v2 = (point.block2 - prev.block2) / dt;
+        } else {
+          v1 = state.blocks[0].velocity;
+          v2 = state.blocks[1].velocity;
+        }
+      }
       return calculate3DStateSpace(
         state.blocks[0].mass, 
         state.blocks[1].mass, 
@@ -465,6 +469,7 @@ const DataVisualization = () => {
                 maintainAspectRatio: false,
                 scales: {
                   y: {
+                    type: 'linear',
                     title: {
                       display: true,
                       text: 'p₂ (momentum of m₂)'
@@ -474,6 +479,7 @@ const DataVisualization = () => {
                     suggestedMax: 10
                   },
                   x: {
+                    type: 'linear',
                     title: {
                       display: true,
                       text: 'p₁ (momentum of m₁)'
