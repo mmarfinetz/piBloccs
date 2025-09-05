@@ -76,3 +76,13 @@ def pi_experiment():
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=8080, debug=True) 
+# Serve static files from React build
+@app.route('/', defaults={'path': ''})
+@app.route('/<path:path>')
+def serve(path):
+    from flask import send_from_directory
+    import os
+    if path != "" and os.path.exists(os.path.join('static', path)):
+        return send_from_directory('static', path)
+    else:
+        return send_from_directory('static', 'index.html')

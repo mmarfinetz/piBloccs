@@ -16,7 +16,7 @@ PYTHONUNBUFFERED = "1"
 enabled = true
 
 [nix]
-channel = "stable-22_11"
+channel = "stable-23_05"
 
 [unitTest]
 language = "python3"

@@ -1,0 +1,114 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Physics Simulation API",
+    "description": "API for running physics simulations to approximate Pi",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/api/simulate": {
+      "post": {
+        "summary": "Run a physics simulation",
+        "description": "Run a simulation with two colliding blocks to approximate Pi",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "m1": {
+                    "type": "number",
+                    "description": "Mass of the first block"
+                  },
+                  "m2": {
+                    "type": "number",
+                    "description": "Mass of the second block"
+                  },
+                  "v1": {
+                    "type": "number",
+                    "description": "Initial velocity of the first block"
+                  },
+                  "v2": {
+                    "type": "number",
+                    "description": "Initial velocity of the second block"
+                  }
+                },
+                "required": ["m1", "m2", "v1", "v2"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string"
+                    },
+                    "collision_count": {
+                      "type": "integer"
+                    },
+                    "animation_data": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "pi_approximation": {
+                      "type": "number"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/pi_experiment": {
+      "get": {
+        "summary": "Run the pi experiment",
+        "description": "Run the pre-configured pi approximation experiment with multiple mass ratios",
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string"
+                    },
+                    "results": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "ratio": {
+                            "type": "number"
+                          },
+                          "collisions": {
+                            "type": "integer"
+                          },
+                          "pi_relation": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+} 

@@ -20,45 +20,30 @@ import {
   expectedCollisionsGalperin,
   formatPiFromCollisions
 } from '../utils/physics';
+// Bundle Plotly locally to avoid CDN/CSP issues
+// eslint-disable-next-line import/no-extraneous-dependencies
+import Plotly from 'plotly.js-dist-min';
 
 // Create a wrapper component for Plotly with improved responsiveness
 const PlotlyGraph = ({ data, layout, config, style }) => {
   const plotRef = useRef(null);
   const [plotlyLoaded, setPlotlyLoaded] = useState(false);
+  const [loadError, setLoadError] = useState(null);
   
   // Check if Plotly is loaded
   useEffect(() => {
-    // Function to check if Plotly is available
-    const checkPlotly = () => {
+    try {
+      // Ensure global Plotly is set for any consumers expecting window.Plotly
+      if (!window.Plotly && Plotly) {
+        window.Plotly = Plotly;
+      }
       if (window.Plotly) {
         setPlotlyLoaded(true);
-        return true;
+      } else {
+        setLoadError('Plotly not available');
       }
-      return false;
-    };
-    
-    // If Plotly is not immediately available, try to load it
-    if (!checkPlotly()) {
-      // Try to load Plotly if it's not available
-      const script = document.createElement('script');
-      script.src = 'https://cdn.plot.ly/plotly-2.29.0.min.js';
-      script.async = true;
-      script.onload = () => setPlotlyLoaded(true);
-      document.body.appendChild(script);
-      
-      // Check again every 100ms for 3 seconds
-      let attempts = 0;
-      const interval = setInterval(() => {
-        if (checkPlotly() || attempts >= 30) {
-          clearInterval(interval);
-        }
-        attempts++;
-      }, 100);
-      
-      return () => {
-        clearInterval(interval);
-        document.body.removeChild(script);
-      };
+    } catch (e) {
+      setLoadError(e?.message || 'Failed to initialize Plotly');
     }
   }, []);
   
@@ -95,7 +80,7 @@ const PlotlyGraph = ({ data, layout, config, style }) => {
     return (
       <div ref={plotRef} style={style} className="plotly-loading">
         <Typography variant="body2" color="text.secondary">
-          Loading visualization...
+          {loadError ? `3D view failed to load: ${loadError}` : 'Loading visualization...'}
         </Typography>
       </div>
     );
@@ -271,19 +256,24 @@ const DataVisualization = () => {
     const m1 = state.blocks[0].mass;
     const m2 = state.blocks[1].mass;
     const times = state.positionHistory.map(p => p.time.toFixed(3));
+    // Prefer recorded velocities at each sample to avoid finite-difference spikes
     const velocities = state.positionHistory.map((p, i) => {
-      if (i === 0) {
-        return {
-          v1: state.blocks[0].velocity,
-          v2: state.blocks[1].velocity
-        };
-      } else {
-        const dt = state.positionHistory[i].time - state.positionHistory[i-1].time || 1e-6;
+      const useRecorded = typeof p.v1 === 'number' && typeof p.v2 === 'number';
+      if (useRecorded) {
+        return { v1: p.v1, v2: p.v2 };
+      }
+      if (i > 0) {
+        const dt = Math.max(1e-6, state.positionHistory[i].time - state.positionHistory[i-1].time);
         return {
           v1: (state.positionHistory[i].block1 - state.positionHistory[i-1].block1) / dt,
           v2: (state.positionHistory[i].block2 - state.positionHistory[i-1].block2) / dt
         };
       }
+      // Fallback to current block velocities if no history
+      return {
+        v1: state.blocks[0].velocity,
+        v2: state.blocks[1].velocity
+      };
     });
     const ke1 = velocities.map(v => 0.5 * m1 * v.v1 * v.v1);
     const ke2 = velocities.map(v => 0.5 * m2 * v.v2 * v.v2);
