@@ -30,7 +30,8 @@ const SimulationContainer = () => {
       </Typography>
       
       <Grid container spacing={3} sx={{ mt: 2 }}>
-        <Grid item xs={12} md={8}>
+        {/* Simulation block full width */}
+        <Grid item xs={12}>
           <Paper elevation={3} sx={{ p: 2, borderRadius: 2 }}>
             <SimulationCanvas ref={canvasRef} />
             <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', mt: 2 }}>
@@ -40,18 +41,23 @@ const SimulationContainer = () => {
             </Box>
             <SimulationControls canvasRef={canvasRef} />
           </Paper>
-          
-          <SimulationHistory />
         </Grid>
-        
-        <Grid item xs={12} md={4}>
-          <Paper elevation={3} sx={{ p: 2, mb: 3, borderRadius: 2 }}>
+
+        {/* Data visualization full width under simulation */}
+        <Grid item xs={12}>
+          <Paper elevation={3} sx={{ p: 2, borderRadius: 2 }}>
             <Typography variant="h5" component="h3" gutterBottom>
               Data Visualization
             </Typography>
             <DataVisualization />
           </Paper>
-          
+        </Grid>
+
+        {/* Additional info below */}
+        <Grid item xs={12} md={6}>
+          <SimulationHistory />
+        </Grid>
+        <Grid item xs={12} md={6}>
           <Paper elevation={3} sx={{ p: 2, borderRadius: 2 }}>
             <ExplanationSection />
           </Paper>

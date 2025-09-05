@@ -410,7 +410,7 @@ const DataVisualization = () => {
         </Box>
       )}
       
-      <Box sx={{ height: 350, mt: 2, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <Box sx={{ height: { xs: 380, sm: 420, md: 520 }, mt: 2, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         {tabValue === 0 && (
           positionChartData ? (
             <Line 
