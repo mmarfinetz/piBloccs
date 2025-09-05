@@ -410,7 +410,7 @@ const DataVisualization = () => {
         </Box>
       )}
       
-      <Box sx={{ height: { xs: 380, sm: 420, md: 520 }, mt: 2, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <Box sx={{ height: { xs: 380, sm: 420, md: 520 }, mt: 2, width: '100%', overflow: 'hidden', display: 'block' }}>
         {tabValue === 0 && (
           positionChartData ? (
             <Line 
@@ -506,36 +506,42 @@ const DataVisualization = () => {
         
         {tabValue === 2 && (
           energyChartData && momentumChartData ? (
-            <Box sx={{ width: '100%', height: '100%', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2 }}>
-              <Box sx={{ height: '100%' }}>
+            <Box sx={{ width: '100%', height: '100%', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2, overflow: 'hidden', minHeight: 0 }}>
+              <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column', minHeight: 0 }}>
                 <Typography variant="subtitle1" sx={{ mb: 1 }}>Kinetic Energy</Typography>
-                <Line 
-                  data={energyChartData}
-                  options={{
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { position: 'top' } },
-                    scales: {
-                      x: { title: { display: true, text: 'Time (s)' }, ticks: { maxTicksLimit: 6 } },
-                      y: { title: { display: true, text: 'Energy' } }
-                    }
-                  }}
-                />
+                <Box sx={{ flex: 1, minHeight: 0 }}>
+                  <Line 
+                    data={energyChartData}
+                    options={{
+                      responsive: true,
+                      maintainAspectRatio: false,
+                      plugins: { legend: { position: 'top' } },
+                      scales: {
+                        x: { title: { display: true, text: 'Time (s)' }, ticks: { maxTicksLimit: 6 } },
+                        y: { title: { display: true, text: 'Energy' } }
+                      }
+                    }}
+                    style={{ width: '100%', height: '100%' }}
+                  />
+                </Box>
               </Box>
-              <Box sx={{ height: '100%' }}>
+              <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column', minHeight: 0 }}>
                 <Typography variant="subtitle1" sx={{ mb: 1 }}>Momentum</Typography>
-                <Line 
-                  data={momentumChartData}
-                  options={{
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { position: 'top' } },
-                    scales: {
-                      x: { title: { display: true, text: 'Time (s)' }, ticks: { maxTicksLimit: 6 } },
-                      y: { title: { display: true, text: 'Momentum' } }
-                    }
-                  }}
-                />
+                <Box sx={{ flex: 1, minHeight: 0 }}>
+                  <Line 
+                    data={momentumChartData}
+                    options={{
+                      responsive: true,
+                      maintainAspectRatio: false,
+                      plugins: { legend: { position: 'top' } },
+                      scales: {
+                        x: { title: { display: true, text: 'Time (s)' }, ticks: { maxTicksLimit: 6 } },
+                        y: { title: { display: true, text: 'Momentum' } }
+                      }
+                    }}
+                    style={{ width: '100%', height: '100%' }}
+                  />
+                </Box>
               </Box>
             </Box>
           ) : (
